@@ -1,0 +1,51 @@
+
+# PyMuPDF
+!pip install requests PyMuPDF
+import fitz  
+import requests
+import os
+
+def download_pdf(url, filename='temp_document.pdf'):
+    """Download a PDF from a specified URL."""
+    response = requests.get(url)
+    with open(filename, 'wb') as file:
+        file.write(response.content)
+    print(f"Downloaded PDF: {filename}")
+
+def search_in_pdf(file_path, search_query):
+    """Searches for the query in the given PDF file and returns the pages that contain the query."""
+    found_pages = []
+    with fitz.open(file_path) as doc:
+        for page in doc:
+            text = page.get_text()
+            if search_query.lower() in text.lower():  # Case-insensitive search
+                found_pages.append(page.number + 1)
+    return found_pages
+
+def chatbot(url):
+    """A simple chatbot that downloads a PDF from a URL and allows the user to query it."""
+    print("Hello! I am your Crow Notes. Your Quick Text assistant. Type 'exit' to quit.")
+
+    # Specify the filename for the downloaded PDF
+    pdf_filename = 'Lord of the Flies'
+    download_pdf(url, pdf_filename)
+
+    while True:
+        query = input("What would you like to search for in the PDF? ")
+        if query.lower() == 'exit':
+            print("Goodbye!")
+            break
+        found_pages = search_in_pdf(pdf_filename, query)
+        if found_pages:
+            pages_str = ', '.join(map(str, found_pages))
+            print(f"I found your query on page(s): {pages_str}")
+        else:
+            print("Sorry, I couldn't find what you're looking for in the document.")
+    
+    # Optionally, delete the PDF after querying
+    os.remove(pdf_filename)
+
+if __name__ == "__main__":
+    # URL of the PDF you want to query
+    pdf_url = "https://lexiconic.net/english/LordoftheFlies.pdf"
+    chatbot(pdf_url)
